@@ -1,0 +1,51 @@
+import("//config.gni")
+
+cpp_files = [
+    "connector/channel.cpp",
+    "connector/file_io_channel.cpp",
+    "connector/tcp_channel.cpp",
+    "connector/tcp_listen_channel.cpp",
+
+    "monitor/monitor.cpp",
+    "monitor/epoll_monitor.cpp",
+    "monitor/select_monitor.cpp",
+
+    "protocol/protocol.cpp",
+
+    "utils/utils.cpp",
+    "utils/thread_pool.cpp",
+    "utils/ring_queue.cpp",
+]
+
+if (use_ssl) {
+    cpp_files += [
+        "connector/ssl_channel.cpp",
+        "connector/ssl_listen_channel.cpp",
+    ]
+}
+
+config("easyio_config") {
+    include_dirs = [
+        "connector/include",
+        "monitor/include",
+        "protocol/include",
+        "utils/include",
+    ]
+    libs = [ "pthread" ]
+    if (use_ssl) {
+        libs += [
+            "ssl",
+            "crypto",
+        ]
+    }
+    defines = []
+    if (debug_mode) {
+        defines += [ "DEBUG_MODE" ]
+    }
+}
+
+source_set("easyio") {
+    public_configs = [ ":easyio_config" ]
+
+    sources = cpp_files
+}

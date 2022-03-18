@@ -1,0 +1,11 @@
+import("//config.gni")
+
+executable("test_ringqueue") {
+    sources = [ "test_ringqueue.cpp" ]
+    public_deps = [ "//noumenon:easyio" ]
+}
+
+executable("test_threadpool") {
+    sources = [ "test_threadpool.cpp" ]
+    public_deps = [ "//noumenon:easyio" ]
+}

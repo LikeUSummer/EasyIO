@@ -1,0 +1,5 @@
+declare_args() {
+    use_ssl = false
+    use_thread_pool = true
+    debug_mode = false
+}

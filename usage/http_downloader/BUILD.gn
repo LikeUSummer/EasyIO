@@ -1,0 +1,13 @@
+import("//config.gni")
+
+executable("http_downloader") {
+    defines = []
+    if (use_thread_pool) {
+        defines += [ "USE_THREAD_POOL" ]
+    }
+    sources = [
+        "http_downloader.cpp",
+        "test.cpp"
+    ]
+    public_deps = [ "//noumenon:easyio" ]
+}

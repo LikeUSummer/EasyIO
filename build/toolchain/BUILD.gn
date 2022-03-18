@@ -1,0 +1,82 @@
+toolchain("gcc") {
+    tool("cc") {
+        outputs = [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+        depfile = "{{output}}.d"
+        depsformat = "gcc"
+
+        command = "gcc -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}} -o {{output}}"
+        description = "CC {{output}}"
+    }
+
+    tool("cxx") {
+        outputs = [ "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o" ]
+        depfile = "{{output}}.d"
+        depsformat = "gcc"
+
+        command = "g++ -MMD -MF $depfile {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}} -o {{output}}"
+        description = "CXX {{output}}"
+    }
+
+    tool("alink") {
+        default_output_dir = "{{target_out_dir}}"
+        default_output_extension = ".a"
+        output_prefix = "lib"
+        outputs = [ "{{output_dir}}/{{target_output_name}}{{output_extension}}" ]
+
+        command = "ar rcs {{output}} {{inputs}}" # 原命令为 "rm -f {{output}} && ar rcs {{output}} {{inputs}}"，但 rm 命令不适用于 windows 系统
+        description = "AR {{target_output_name}}{{output_extension}}"
+    }
+
+    tool("solink") {
+        # 如果目标定义中没有指定 output_dir 的值，就使用此默认值作为输出目录
+        default_output_dir = "{{root_out_dir}}"
+        # 如果目标定义中没有指定 output_extension 的值，就使用此默认值作为输出文件扩展名
+        default_output_extension = ".so"
+
+        soname = "{{target_output_name}}{{output_extension}}"  # e.g. "libfoo.so".
+        sofile = "{{output_dir}}/$soname"
+        rspfile = soname + ".rsp"
+
+        outputs = [ sofile ]
+        link_output = sofile
+        depend_output = sofile
+        output_prefix = "lib"
+
+        if (is_mac) {
+            os_specific_option = "-install_name @executable_path/$sofile"
+            rspfile_content = "{{inputs}} {{solibs}} {{libs}}"
+        } else {
+            os_specific_option = "-Wl,-soname=$soname"
+            rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
+        }
+
+        command = "g++ -shared {{ldflags}} -o $sofile $os_specific_option @$rspfile"
+        description = "SOLINK $soname"
+    }
+
+    tool("link") {
+        default_output_dir = "{{root_out_dir}}"
+        outfile = "{{target_output_name}}{{output_extension}}"
+        outputs = [ outfile ]
+        rspfile = "$outfile.rsp"
+        rspfile_content = "{{inputs}}"
+
+        if (is_mac) {
+            command = "g++ {{ldflags}} -o $outfile @$rspfile {{solibs}} {{libs}}"
+        } else {
+            # 从这里可看出，外部依赖库应该放到 libs 中，而不是 ldflags
+            command = "g++ {{ldflags}} -o $outfile -Wl,--start-group @$rspfile {{solibs}} -Wl,--end-group {{libs}}"
+        }
+        description = "LINK $outfile"
+    }
+
+    tool("stamp") {
+        command = "touch {{output}}"
+        description = "STAMP {{output}}"
+    }
+
+    tool("copy") {
+        command = "cp -af {{source}} {{output}}"
+        description = "COPY {{source}} {{output}}"
+    }
+}

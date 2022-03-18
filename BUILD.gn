@@ -1,0 +1,11 @@
+import("config.gni")
+
+group("test_bin") {
+    deps = [
+        "//usage/chat:cs_chat",
+        "//usage/http_downloader:http_downloader",
+        "//usage/cs_with_protocol:cs_with_protocol",
+        "//usage/module_test:test_ringqueue",
+        "//usage/module_test:test_threadpool",
+    ]
+}

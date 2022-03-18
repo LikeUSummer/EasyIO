@@ -1,0 +1,34 @@
+import("//config.gni")
+
+executable("server_with_protocol") {
+    sources = [
+        "server.cpp",
+        "interface.cpp",
+    ]
+    public_deps = [ "//noumenon:easyio" ]
+}
+
+executable("client_with_protocol") {
+    sources = [
+        "client.cpp",
+        "interface.cpp",
+    ]
+    public_deps = [ "//noumenon:easyio" ]
+}
+
+if (use_ssl) {
+    copy("copy_cert_files") {
+        sources = [ "key" ]
+        outputs = [ "${root_out_dir}/key" ]
+    }
+}
+
+group("cs_with_protocol") {
+    deps = [
+        ":server_with_protocol",
+        ":client_with_protocol",
+    ]
+    if (use_ssl) {
+        deps += [ ":copy_cert_files" ]
+    }
+}

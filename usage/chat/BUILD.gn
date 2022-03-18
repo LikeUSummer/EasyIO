@@ -1,0 +1,33 @@
+import("//config.gni")
+
+config("chat_config") {
+    defines = []
+    libs = []
+    if (use_ssl) {
+        defines += [ "USESSL" ]
+        libs += [
+            "ssl",
+            "crypto"
+        ]
+    }
+}
+
+executable("chat_server") {
+    configs += [ ":chat_config" ]
+    defines = [ "SERVER" ]
+    sources = [ "cs_chat.cpp" ]
+    public_deps = [ "//noumenon:easyio" ]
+}
+
+executable("chat_client") {
+    configs += [ ":chat_config" ]
+    sources = [ "cs_chat.cpp" ]
+    public_deps = [ "//noumenon:easyio" ]
+}
+
+group("cs_chat") {
+    deps = [
+        ":chat_server",
+        ":chat_client"
+    ]
+}
